@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN fortress_charges INT NOT NULL DEFAULT 0;

@@ -1,0 +1,32 @@
+# Env
+.env
+
+# Backend (Maven / Java)
+backend/target/
+*.class
+*.jar
+!backend/.mvn/wrapper/maven-wrapper.jar
+HELP.md
+
+# Frontend (Node)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.tsbuildinfo
+npm-debug.log*
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Fil rouge
+tp-fil-rouge/
+.backups/
+
+# Benchmark Makefile (racine)
+benchmark-results/

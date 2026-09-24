@@ -1,0 +1,230 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "close": "Fermer",
+    "points": "pts"
+  },
+  "nav": {
+    "brand": "Opt",
+    "profile": "🏆 Profil",
+    "logout": "Deconnexion",
+    "live": "En direct",
+    "reconnecting": "Reconnexion...",
+    "language": "Langue"
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Heureux de te revoir.",
+      "submit": "Se connecter",
+      "submitting": "Connexion...",
+      "switchPrompt": "Pas encore de compte ?",
+      "switchLink": "Creer un compte"
+    },
+    "signup": {
+      "title": "Creer un compte",
+      "subtitle": "Rejoins la grille en quelques secondes.",
+      "submit": "Creer mon compte",
+      "submitting": "Creation...",
+      "switchPrompt": "Deja un compte ?",
+      "switchLink": "Se connecter"
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Mot de passe",
+      "fullName": "Nom complet"
+    },
+    "errors": {
+      "loginFailed": "Impossible de se connecter",
+      "signupFailed": "Impossible de creer le compte"
+    }
+  },
+  "home": {
+    "greeting": "Content de te revoir, {{name}}",
+    "connectedAs": "Connecte en tant que {{email}}",
+    "heroText": "Une grille partagee, une couleur a la fois. Rejoins les autres joueurs en direct.",
+    "cta": "Rejoindre le Pixel Wars",
+    "players": "Joueurs inscrits",
+    "totalPixels": "Pixels poses au total",
+    "redTerritory": "Territoire Rouge",
+    "blueTerritory": "Territoire Bleu"
+  },
+  "pixelWars": {
+    "subtitle": "Un pixel toutes les {{seconds}}s. Encercle les pixels adverses pour les capturer. Molette pour zoomer, clic droit + glisser pour te deplacer.",
+    "team": {
+      "RED": "Rouge",
+      "BLUE": "Bleue",
+      "badge": "Equipe {{team}}"
+    },
+    "toolbar": {
+      "bomb": "Bombe ({{count}})",
+      "fortress": "Forteresse ({{count}})",
+      "shop": "Boutique",
+      "appearance": "Apparence",
+      "rules": "Regles",
+      "achievements": "Succes",
+      "recenter": "Recentrer",
+      "soundOn": "Son actif",
+      "soundOff": "Son coupe",
+      "reactions": "Reactions"
+    },
+    "errors": {
+      "loadFailed": "Impossible de charger la grille",
+      "placeFailed": "Impossible de poser ce pixel",
+      "purchaseFailed": "Achat impossible",
+      "selectFailed": "Selection impossible",
+      "contributeFailed": "Contribution impossible",
+      "reactionFailed": "Reaction impossible"
+    },
+    "comboText": "+{{points}} combo !",
+    "captureText": "+{{points}} capture !",
+    "bonusText": "x2 zone bonus !",
+    "buffs": {
+      "cafe": "Cafe actif ({{count}})",
+      "rafale": "Rafale actif ({{count}})",
+      "frenzy": "Frenzie x2 ({{count}})",
+      "shield": "Bouclier ({{seconds}}s)",
+      "teamRush": "Assaut d'equipe ({{seconds}}s)"
+    },
+    "teamRushBanner": "🔥 RUEE D'EQUIPE — cooldown ÷2 pour toute l'equipe pendant 30s"
+  },
+  "leaderboard": {
+    "title": "Classement",
+    "empty": "Personne n'a encore pose de pixel."
+  },
+  "perks": {
+    "points": "{{points}} pts",
+    "tier": "Palier {{tier}}/3",
+    "buy": "Acheter",
+    "buying": "Achat...",
+    "alreadyActive": "Deja actif",
+    "names": {
+      "BOMB": "Bombe",
+      "CAFE": "Cafe",
+      "RAFALE": "Rafale",
+      "SHIELD": "Bouclier",
+      "FRENZY": "Frenzie",
+      "FORTRESS": "Forteresse"
+    },
+    "descriptions": {
+      "BOMB": "Pose un bloc 3x3 de la couleur de ton equipe en un seul placement.",
+      "CAFE": "-50% de cooldown sur tes prochains placements (plus de placements par palier).",
+      "RAFALE": "Tes prochains placements ignorent totalement le cooldown (plus de charges par palier).",
+      "SHIELD": "Toute ton equipe est immunisee contre la capture (duree plus longue par palier).",
+      "FRENZY": "Double tes points de combo sur tes prochains placements (plus de charges par palier).",
+      "FORTRESS": "Ta prochaine case posee devient increcapturable (duree plus longue par palier)."
+    }
+  },
+  "skins": {
+    "intro": "{{points}} pts — purement cosmetique, seulement visible pour toi, recolore/redessine uniquement ta propre equipe.",
+    "defaultOption": "Couleur d'equipe (defaut)",
+    "active": "Actif",
+    "choose": "Choisir",
+    "buy": "Acheter",
+    "buying": "Achat...",
+    "locked": "Verrouille — deverrouille par le {{achievement}}.",
+    "kind": {
+      "COLOR": "Couleur",
+      "BORDER": "Bordure",
+      "CURSOR": "Curseur"
+    },
+    "names": {
+      "ORANGE": "Orange",
+      "PURPLE": "Violet",
+      "TEAL": "Turquoise",
+      "GOLD": "Or",
+      "PINK": "Rose",
+      "LIME": "Citron vert",
+      "BORDER_DASHED": "Bordure pointillee",
+      "BORDER_THICK": "Bordure epaisse",
+      "CURSOR_TARGET": "Curseur viseur"
+    }
+  },
+  "teamPool": {
+    "title": "Cagnotte d'equipe",
+    "reward": "→ Ruee d'equipe : cooldown ÷2, 30s",
+    "contribute": "Contribuer"
+  },
+  "rules": {
+    "territory": {
+      "title": "Territoire",
+      "text": "Chaque joueur appartient a une equipe (Rouge ou Bleue), assignee automatiquement pour equilibrer les effectifs. Un placement colore toujours la case dans la couleur de ton equipe."
+    },
+    "combos": {
+      "title": "Combos",
+      "text": "Aligne 5 pixels ou plus de ta couleur (horizontal, vertical ou diagonale), ou complete un carre plein de 3x3 ou plus : les deux peuvent se cumuler sur un seul placement.",
+      "line": "Ligne de 5 → +10",
+      "square": "Carre 3x3 → +15"
+    },
+    "capture": {
+      "title": "Capture par encerclement",
+      "text": "Si un groupe de pixels adverses se retrouve entierement borde par les pixels de ton equipe — aucune case neutre, aucun bord de carte expose — il est capture et passe a ta couleur. Un bouclier d'equipe actif, ou une case fortifiee, bloque temporairement ce genre de capture."
+    },
+    "perksTitle": "Perks",
+    "appearance": {
+      "title": "Apparence",
+      "text": "Des skins cosmetiques (boutique \"Apparence\") permettent de recolorer la couleur de ta propre equipe uniquement sur ton ecran — les autres joueurs continuent de voir la couleur officielle de ton equipe."
+    }
+  },
+  "achievements": {
+    "unlockedToast": "Succes debloque : {{name}}",
+    "names": {
+      "PREMIER_PIXEL": "Premier pixel",
+      "CENTURION": "Centurion",
+      "CONQUERANT": "Conquerant",
+      "COMBO_MASTER": "Combo Master",
+      "ARTIFICIER": "Artificier",
+      "STRATEGE": "Stratege",
+      "COLLECTIONNEUR": "Collectionneur",
+      "VETERAN_EQUIPE": "Veteran d'equipe"
+    },
+    "descriptions": {
+      "PREMIER_PIXEL": "Place ton tout premier pixel.",
+      "CENTURION": "Place 100 pixels au total.",
+      "CONQUERANT": "Capture 10 pixels adverses au total.",
+      "COMBO_MASTER": "Declenche 5 combos.",
+      "ARTIFICIER": "Utilise 10 bombes.",
+      "STRATEGE": "Achete au moins une fois chaque type de perk.",
+      "COLLECTIONNEUR": "Possede tous les skins.",
+      "VETERAN_EQUIPE": "Contribue 3 fois a la cagnotte d'equipe."
+    }
+  },
+  "profile": {
+    "memberSince": "Equipe {{team}} — membre depuis {{date}}",
+    "statsTitle": "Statistiques a vie",
+    "stats": {
+      "pixelsPlaced": "Pixels poses",
+      "capturesMade": "Pixels captures",
+      "combosTriggered": "Combos declenches",
+      "bombsUsed": "Bombes utilisees",
+      "teamPoolContributions": "Contributions cagnotte"
+    },
+    "perksTitle": "Perks",
+    "noPerks": "Aucun perk achete pour l'instant.",
+    "purchases": "{{count}} achats",
+    "skinsTitle": "Skins possedes",
+    "noSkins": "Aucun skin deverrouille pour l'instant.",
+    "achievementsTitle": "Succes",
+    "noAchievements": "Aucun succes debloque pour l'instant.",
+    "loadError": "Impossible de charger le profil"
+  },
+  "errors": {
+    "EMAIL_ALREADY_USED": "Un compte existe deja avec l'email {{email}}",
+    "BAD_CREDENTIALS": "Email ou mot de passe incorrect",
+    "OUT_OF_BOUNDS": "Coordonnees hors de la grille",
+    "PERK_NOT_PLACEABLE": "Ce perk ne s'utilise pas via un placement, achete-le pour l'activer directement",
+    "COOLDOWN_ACTIVE": "Cooldown actif, reessaie dans {{remainingSeconds}}s",
+    "INSUFFICIENT_POINTS": "Points insuffisants : {{cost}} requis, {{available}} disponibles",
+    "NO_BOMB_CHARGE": "Aucune charge de bombe disponible, achete-la dans la boutique de perks",
+    "SPEED_BUFF_ALREADY_ACTIVE": "Un effet Cafe/Rafale est deja actif, attends qu'il se termine avant d'en racheter un",
+    "NO_FORTRESS_CHARGE": "Aucune charge de forteresse disponible, achete-la dans la boutique de perks",
+    "SKIN_ALREADY_OWNED": "Tu possedes deja ce skin",
+    "SKIN_NOT_OWNED": "Tu ne possedes pas encore ce skin, achete-le d'abord",
+    "SKIN_NOT_PURCHASABLE": "Ce skin ne s'achete pas, il se deverrouille via un succes",
+    "INVALID_AMOUNT": "Le montant doit etre positif",
+    "EMOTE_RATE_LIMIT": "Attends un instant avant d'envoyer une nouvelle reaction",
+    "INVALID_EMOTE": "Reaction non autorisee",
+    "VALIDATION_ERROR": "Requete invalide",
+    "INTERNAL_ERROR": "Une erreur inattendue est survenue"
+  }
+}

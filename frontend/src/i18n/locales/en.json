@@ -1,0 +1,230 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "close": "Close",
+    "points": "pts"
+  },
+  "nav": {
+    "brand": "Opt",
+    "profile": "🏆 Profile",
+    "logout": "Log out",
+    "live": "Live",
+    "reconnecting": "Reconnecting...",
+    "language": "Language"
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "subtitle": "Welcome back.",
+      "submit": "Log in",
+      "submitting": "Logging in...",
+      "switchPrompt": "No account yet?",
+      "switchLink": "Create an account"
+    },
+    "signup": {
+      "title": "Create an account",
+      "subtitle": "Join the grid in a few seconds.",
+      "submit": "Create my account",
+      "submitting": "Creating...",
+      "switchPrompt": "Already have an account?",
+      "switchLink": "Log in"
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "fullName": "Full name"
+    },
+    "errors": {
+      "loginFailed": "Unable to log in",
+      "signupFailed": "Unable to create the account"
+    }
+  },
+  "home": {
+    "greeting": "Welcome back, {{name}}",
+    "connectedAs": "Logged in as {{email}}",
+    "heroText": "A shared grid, one color at a time. Join the other players live.",
+    "cta": "Join Pixel Wars",
+    "players": "Registered players",
+    "totalPixels": "Total pixels placed",
+    "redTerritory": "Red territory",
+    "blueTerritory": "Blue territory"
+  },
+  "pixelWars": {
+    "subtitle": "One pixel every {{seconds}}s. Surround enemy pixels to capture them. Scroll to zoom, right-click + drag to pan.",
+    "team": {
+      "RED": "Red",
+      "BLUE": "Blue",
+      "badge": "Team {{team}}"
+    },
+    "toolbar": {
+      "bomb": "Bomb ({{count}})",
+      "fortress": "Fortress ({{count}})",
+      "shop": "Shop",
+      "appearance": "Appearance",
+      "rules": "Rules",
+      "achievements": "Achievements",
+      "recenter": "Recenter",
+      "soundOn": "Sound on",
+      "soundOff": "Sound off",
+      "reactions": "Reactions"
+    },
+    "errors": {
+      "loadFailed": "Unable to load the grid",
+      "placeFailed": "Unable to place this pixel",
+      "purchaseFailed": "Purchase failed",
+      "selectFailed": "Selection failed",
+      "contributeFailed": "Contribution failed",
+      "reactionFailed": "Reaction failed"
+    },
+    "comboText": "+{{points}} combo!",
+    "captureText": "+{{points}} capture!",
+    "bonusText": "x2 bonus zone!",
+    "buffs": {
+      "cafe": "Coffee active ({{count}})",
+      "rafale": "Burst active ({{count}})",
+      "frenzy": "Frenzy x2 ({{count}})",
+      "shield": "Shield ({{seconds}}s)",
+      "teamRush": "Team rush ({{seconds}}s)"
+    },
+    "teamRushBanner": "🔥 TEAM RUSH — cooldown ÷2 for the whole team for 30s"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "empty": "No one has placed a pixel yet."
+  },
+  "perks": {
+    "points": "{{points}} pts",
+    "tier": "Tier {{tier}}/3",
+    "buy": "Buy",
+    "buying": "Buying...",
+    "alreadyActive": "Already active",
+    "names": {
+      "BOMB": "Bomb",
+      "CAFE": "Coffee",
+      "RAFALE": "Burst",
+      "SHIELD": "Shield",
+      "FRENZY": "Frenzy",
+      "FORTRESS": "Fortress"
+    },
+    "descriptions": {
+      "BOMB": "Places a 3x3 block of your team's color in a single placement.",
+      "CAFE": "-50% cooldown on your next placements (more placements per tier).",
+      "RAFALE": "Your next placements fully skip the cooldown (more charges per tier).",
+      "SHIELD": "Your whole team is immune to capture (longer duration per tier).",
+      "FRENZY": "Doubles your combo points on your next placements (more charges per tier).",
+      "FORTRESS": "Your next placed cell becomes uncapturable (longer duration per tier)."
+    }
+  },
+  "skins": {
+    "intro": "{{points}} pts — purely cosmetic, only visible to you, recolors/redraws only your own team.",
+    "defaultOption": "Team color (default)",
+    "active": "Active",
+    "choose": "Choose",
+    "buy": "Buy",
+    "buying": "Buying...",
+    "locked": "Locked — unlocked by the {{achievement}}.",
+    "kind": {
+      "COLOR": "Color",
+      "BORDER": "Border",
+      "CURSOR": "Cursor"
+    },
+    "names": {
+      "ORANGE": "Orange",
+      "PURPLE": "Purple",
+      "TEAL": "Teal",
+      "GOLD": "Gold",
+      "PINK": "Pink",
+      "LIME": "Lime",
+      "BORDER_DASHED": "Dashed border",
+      "BORDER_THICK": "Thick border",
+      "CURSOR_TARGET": "Target cursor"
+    }
+  },
+  "teamPool": {
+    "title": "Team pool",
+    "reward": "→ Team rush: cooldown ÷2, 30s",
+    "contribute": "Contribute"
+  },
+  "rules": {
+    "territory": {
+      "title": "Territory",
+      "text": "Each player belongs to a team (Red or Blue), assigned automatically to balance headcounts. A placement always colors the cell in your team's color."
+    },
+    "combos": {
+      "title": "Combos",
+      "text": "Line up 5 or more pixels of your color (horizontal, vertical or diagonal), or complete a solid 3x3-or-larger square: both can stack on a single placement.",
+      "line": "Line of 5 → +10",
+      "square": "3x3 square → +15"
+    },
+    "capture": {
+      "title": "Encirclement capture",
+      "text": "If a group of enemy pixels ends up entirely bordered by your team's pixels — no neutral cell, no exposed map edge — it is captured and switches to your color. An active team shield, or a fortified cell, temporarily blocks this kind of capture."
+    },
+    "perksTitle": "Perks",
+    "appearance": {
+      "title": "Appearance",
+      "text": "Cosmetic skins (the \"Appearance\" shop) let you recolor your own team's color, only on your screen — other players still see your team's official color."
+    }
+  },
+  "achievements": {
+    "unlockedToast": "Achievement unlocked: {{name}}",
+    "names": {
+      "PREMIER_PIXEL": "First Pixel",
+      "CENTURION": "Centurion",
+      "CONQUERANT": "Conqueror",
+      "COMBO_MASTER": "Combo Master",
+      "ARTIFICIER": "Bombardier",
+      "STRATEGE": "Strategist",
+      "COLLECTIONNEUR": "Collector",
+      "VETERAN_EQUIPE": "Team Veteran"
+    },
+    "descriptions": {
+      "PREMIER_PIXEL": "Place your very first pixel.",
+      "CENTURION": "Place 100 pixels in total.",
+      "CONQUERANT": "Capture 10 enemy pixels in total.",
+      "COMBO_MASTER": "Trigger 5 combos.",
+      "ARTIFICIER": "Use 10 bombs.",
+      "STRATEGE": "Buy at least one of each perk type.",
+      "COLLECTIONNEUR": "Own every skin.",
+      "VETERAN_EQUIPE": "Contribute 3 times to the team pool."
+    }
+  },
+  "profile": {
+    "memberSince": "Team {{team}} — member since {{date}}",
+    "statsTitle": "Lifetime statistics",
+    "stats": {
+      "pixelsPlaced": "Pixels placed",
+      "capturesMade": "Pixels captured",
+      "combosTriggered": "Combos triggered",
+      "bombsUsed": "Bombs used",
+      "teamPoolContributions": "Pool contributions"
+    },
+    "perksTitle": "Perks",
+    "noPerks": "No perk purchased yet.",
+    "purchases": "{{count}} purchases",
+    "skinsTitle": "Owned skins",
+    "noSkins": "No skin unlocked yet.",
+    "achievementsTitle": "Achievements",
+    "noAchievements": "No achievement unlocked yet.",
+    "loadError": "Unable to load the profile"
+  },
+  "errors": {
+    "EMAIL_ALREADY_USED": "An account already exists with the email {{email}}",
+    "BAD_CREDENTIALS": "Incorrect email or password",
+    "OUT_OF_BOUNDS": "Coordinates outside the grid",
+    "PERK_NOT_PLACEABLE": "This perk isn't used via a placement, buy it to activate it directly",
+    "COOLDOWN_ACTIVE": "Cooldown active, try again in {{remainingSeconds}}s",
+    "INSUFFICIENT_POINTS": "Not enough points: {{cost}} required, {{available}} available",
+    "NO_BOMB_CHARGE": "No bomb charge available, buy one in the perk shop",
+    "SPEED_BUFF_ALREADY_ACTIVE": "A Coffee/Burst effect is already active, wait for it to end before buying another",
+    "NO_FORTRESS_CHARGE": "No fortress charge available, buy one in the perk shop",
+    "SKIN_ALREADY_OWNED": "You already own this skin",
+    "SKIN_NOT_OWNED": "You don't own this skin yet, buy it first",
+    "SKIN_NOT_PURCHASABLE": "This skin can't be bought, it unlocks via an achievement",
+    "INVALID_AMOUNT": "The amount must be positive",
+    "EMOTE_RATE_LIMIT": "Wait a moment before sending another reaction",
+    "INVALID_EMOTE": "Reaction not allowed",
+    "VALIDATION_ERROR": "Invalid request",
+    "INTERNAL_ERROR": "An unexpected error occurred"
+  }
+}
