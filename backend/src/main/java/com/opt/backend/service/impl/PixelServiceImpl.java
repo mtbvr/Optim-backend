@@ -116,7 +116,7 @@ public class PixelServiceImpl implements PixelService {
 
     @Override
     @Transactional
-    public synchronized PlacePixelResponse placePixel(UUID userId, PlacePixelRequest request) {
+    public PlacePixelResponse placePixel(UUID userId, PlacePixelRequest request) {
         User user = getUser(userId);
         Team team = user.getTeam();
         String color = colorOf(team);
@@ -141,18 +141,60 @@ public class PixelServiceImpl implements PixelService {
         }
 
         List<Coord> targetCells = resolveTargetCells(request.x(), request.y(), isBomb);
+        PlacementResult result = applyPlacement(userId, team, color, targetCells, isBomb, isFortress,
+                request.x(), request.y());
+
+        boolean bonusApplied = bonusZoneTracker.isActiveAt(request.x(), request.y());
+        int pointsAwarded = result.basePoints() + result.comboPoints() + result.capturePoints();
+        if (bonusApplied) {
+            pointsAwarded *= properties.getBonusZoneMultiplier();
+        }
+
+        lastPlacementByUser.put(userId, Instant.now());
+        perkEffectsTracker.consumeSpeedBuffCharge(userId);
+        perkEffectsTracker.consumeComboBuffCharge(userId);
+        user.setPoints(user.getPoints() + pointsAwarded);
+        userRepository.save(user);
+
+        userStatsService.recordPlacement(userId, targetCells.size());
+        if (!result.capturedDtos().isEmpty()) {
+            userStatsService.recordCapture(userId, result.capturedDtos().size());
+        }
+        if (result.comboPoints() > 0) {
+            userStatsService.recordCombo(userId);
+        }
+        if (isBomb) {
+            userStatsService.recordBombUse(userId);
+        }
+        List<AchievementDefinition> newAchievements = achievementService.evaluateAndUnlock(userId);
+
+        webSocketHandler.broadcast(PixelsPlacedEvent.of(result.placedDtos(), globalPlacementCounter.incrementAndGet()));
+        if (!result.capturedDtos().isEmpty()) {
+            webSocketHandler.broadcast(PixelsCapturedEvent.of(result.capturedDtos()));
+        }
+        webSocketHandler.broadcast(LeaderboardUpdateEvent.of(leaderboardTracker.snapshot()));
+
+        int nextCooldownSeconds = effectiveCooldownSeconds(userId, team);
+        return new PlacePixelResponse(result.placedDtos(), result.capturedDtos(), pointsAwarded,
+                result.comboPoints(), result.capturePoints(), bonusApplied, PlayerStateDto.from(user),
+                nextCooldownSeconds, newAchievements);
+    }
+
+    private synchronized PlacementResult applyPlacement(UUID userId, Team team, String color,
+                                                          List<Coord> targetCells, boolean isBomb,
+                                                          boolean isFortress, int x, int y) {
         List<PixelDto> placedDtos = new ArrayList<>();
         for (Coord cell : targetCells) {
             placedDtos.add(writeCell(cell, team, color, userId));
         }
         if (isFortress) {
-            perkEffectsTracker.fortifyCell(new Coord(request.x(), request.y()), fortressDuration(userId));
+            perkEffectsTracker.fortifyCell(new Coord(x, y), fortressDuration(userId));
         }
 
         int basePoints = properties.getPlacementPoints();
         int comboPoints = isBomb
                 ? 0
-                : comboEvaluator.evaluate(boardGrid, request.x(), request.y(), team) * perkEffectsTracker.peekComboMultiplier(userId);
+                : comboEvaluator.evaluate(boardGrid, x, y, team) * perkEffectsTracker.peekComboMultiplier(userId);
 
         int capturePoints = 0;
         List<PixelDto> capturedDtos = new ArrayList<>();
@@ -166,39 +208,11 @@ public class PixelServiceImpl implements PixelService {
             capturePoints = capturedCells.size() * properties.getCaptureBonusPerPixel();
         }
 
-        boolean bonusApplied = bonusZoneTracker.isActiveAt(request.x(), request.y());
-        int pointsAwarded = basePoints + comboPoints + capturePoints;
-        if (bonusApplied) {
-            pointsAwarded *= properties.getBonusZoneMultiplier();
-        }
+        return new PlacementResult(placedDtos, capturedDtos, basePoints, comboPoints, capturePoints);
+    }
 
-        lastPlacementByUser.put(userId, Instant.now());
-        perkEffectsTracker.consumeSpeedBuffCharge(userId);
-        perkEffectsTracker.consumeComboBuffCharge(userId);
-        user.setPoints(user.getPoints() + pointsAwarded);
-        userRepository.save(user);
-
-        userStatsService.recordPlacement(userId, targetCells.size());
-        if (!capturedDtos.isEmpty()) {
-            userStatsService.recordCapture(userId, capturedDtos.size());
-        }
-        if (comboPoints > 0) {
-            userStatsService.recordCombo(userId);
-        }
-        if (isBomb) {
-            userStatsService.recordBombUse(userId);
-        }
-        List<AchievementDefinition> newAchievements = achievementService.evaluateAndUnlock(userId);
-
-        webSocketHandler.broadcast(PixelsPlacedEvent.of(placedDtos, globalPlacementCounter.incrementAndGet()));
-        if (!capturedDtos.isEmpty()) {
-            webSocketHandler.broadcast(PixelsCapturedEvent.of(capturedDtos));
-        }
-        webSocketHandler.broadcast(LeaderboardUpdateEvent.of(leaderboardTracker.snapshot()));
-
-        int nextCooldownSeconds = effectiveCooldownSeconds(userId, team);
-        return new PlacePixelResponse(placedDtos, capturedDtos, pointsAwarded, comboPoints, capturePoints,
-                bonusApplied, PlayerStateDto.from(user), nextCooldownSeconds, newAchievements);
+    private record PlacementResult(List<PixelDto> placedDtos, List<PixelDto> capturedDtos, int basePoints,
+                                    int comboPoints, int capturePoints) {
     }
 
     private PixelDto writeCell(Coord cell, Team team, String color, UUID userId) {

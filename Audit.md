@@ -1,15 +1,15 @@
 # Pixel Wars — Audit de Performance Backend
 
 Backend Java 21 / Spring Boot d'un jeu multijoueur de placement de pixels par équipes
-(façon *r/place*). Ce document présente l'audit de performance du chemin critique de l'API. Chaque version ultérieure est mesurée avec le même protocole et vient enrichir
-la synthèse.
+(façon *r/place*). Audit de performance du chemin critique de l'API : chaque version
+ultérieure est mesurée avec le même protocole.
 
 ---
 
 ## Contexte & Hot Path
 
 Pixel Wars oppose des équipes sur un plateau de **120 × 80 = 9 600 cases**. Deux routes
-concentrent la quasi-totalité du trafic et constituent le **hot path** — seule cible de l'audit :
+concentrent l'essentiel du trafic : le **hot path**, seule cible de l'audit.
 
 | Route | Rôle | Nature de la charge |
 |---|---|---|
@@ -18,22 +18,37 @@ concentrent la quasi-totalité du trafic et constituent le **hot path** — seul
 
 ---
 
+## Environnement de test
+
+| | |
+|---|---|
+| CPU | AMD Ryzen 7 7840HS (Zen4, 8 cœurs / 16 threads, jusqu'à 3,8 GHz) |
+| Cache | L1 32 Ko I + 32 Ko D par cœur (spec Zen4) · L2 8 Mo (1 Mo/cœur) · L3 16 Mo partagé |
+| RAM | 16 Go hôte — 7,4 Go alloués à Docker Desktop (WSL2) |
+| OS hôte | Windows 11 Famille (64 bits) |
+| Runtime hôte (hyperfine, micro-benchmarks) | Temurin 21.0.11+10 |
+| Runtime conteneur (backend) | Temurin 21.0.12+8, Alpine Linux (JRE) |
+
+Backend en conteneur Docker (WSL2), pas sur métal nu : CPU hôte exposé au conteneur,
+RAM plafonnée par WSL2.
+
+---
+
 ## Synthèse des performances par version
 
-Mesure macro via **vegeta** (charge HTTP réelle), selon deux profils :
-
-- **Séquentiel** — 1 requête à la fois (latence à vide).
-- **Concurrent** — 25 comptes distincts × 3 rafales (comportement sous contention).
+Mesure macro via **vegeta** (charge HTTP réelle) : **séquentiel** (1 requête à la fois) vs
+**concurrent** (25 comptes distincts × 3 rafales).
 
 Latence moyenne, en millisecondes (plus bas = meilleur) :
 
 | Version | Stratégie | GET séq. | GET conc. | POST séq. | POST conc. |
 |---|---|---:|---:|---:|---:|
-| **V0** | Baseline (état actuel) | 16.3 | 48.8 | 34.1 | 216.3 |
+| **V0** | Baseline (état initial) | 16.3 | 48.8 | 34.1 | 216.3 |
+| **V1** | Section critique de `placePixel()` réduite | 8.6 | 35.0 | 18.5 | **86.6** |
 
-> Signal le plus fort du tableau : le `POST` concurrent explose (34 → 216 ms, ×6,3) là où le
-> séquentiel reste bas. C'est la signature d'une sérialisation des écritures — confirmée au
-> diagnostic.
+> Signal le plus fort : le `POST` concurrent explose (34 → 216 ms, ×6,3) là où le séquentiel
+> reste bas — signature d'une sérialisation des écritures, confirmée au diagnostic. En V1,
+> il retombe à 86,6 ms (**-60 %**).
 
 ---
 
@@ -45,58 +60,71 @@ Rapport de benchmark complet : [`benchmark_v0.pdf`](./benchmark_v0.pdf).
 
 ### 1. POST — contention de verrou
 
-`PixelServiceImpl.placePixel()` est `synchronized` pendant toute son exécution.
-
-Un seul joueur peut poser un pixel à la fois. Les autres doivent attendre que le traitement précédent soit terminé.
-
-Le verrou reste actif pendant plusieurs opérations : validation, écriture PostgreSQL, calcul des combos/captures et diffusion WebSocket.
+`PixelServiceImpl.placePixel()` est `synchronized` sur toute sa durée : chaque thread doit
+franchir ce **monitor enter** bloquant, quel que soit le nombre de cœurs disponibles. Un
+seul joueur pose un pixel à la fois — validation, écriture PostgreSQL, combos/captures et
+diffusion WebSocket, tout sous le même verrou.
 
 Confirmé à deux niveaux indépendants :
 
-- **Charge vegeta** — lorsque plusieurs POST sont envoyés en même temps, les requêtes deviennent beaucoup plus lentes et les performances chutent, avec une latence d’environ **216 ms**.
-  Visible dans `benchmark_v0.pdf`, chapitres « Graphique - POST : séquentiel vs concurrent » et « Graphique - POST : latence par ordre de complétion ». La diagramme est en dent de scie
-- **JDK Flight Recorder + flamegraph** (async-profiler) sous charge POST concurrente : **75 événements `JavaMonitorEnter`**, correspondant aux 75 placements. Le flamegraph montre que les requêtes passent leur temps à attendre.
-  Visible dans `benchmark_v0.pdf`, chapitre « Graphique - Flamegraph : contention sur verrous (POST concurrent) ».
+- **Charge vegeta** — sous POST concurrent, la latence moyenne grimpe à **~216 ms** (diagramme
+  en dents de scie). Visible dans `benchmark_v0.pdf`, chapitres « POST : séquentiel vs
+  concurrent » et « POST : latence par ordre de complétion ».
+- **JDK Flight Recorder + flamegraph** (async-profiler, `--lock`) : **75 événements
+  `JavaMonitorEnter`** (un par placement). Le chemin dominant (`PixelServiceImpl →
+  AbstractQueuedSynchronizer$ConditionObject`) occupe tout le graphe : la contention domine,
+  pas le calcul. Visible dans `benchmark_v0.pdf`, chapitre « Flamegraph : contention sur
+  verrous (POST concurrent) ».
 
 ### 2. GET — parcours de toutes les cases & réallocations
 
-`BoardGrid.snapshot()` parcourt les 9 600 cases du plateau à chaque appel, même si seulement quelques pixels sont réellement posés.
+`BoardGrid.snapshot()` parcourt les 9 600 cases à chaque appel, même si peu de pixels sont
+posés : le coût dépend de la taille du plateau, pas du nombre de pixels.
 
-Le programme vérifie donc beaucoup de cases inutiles. Le temps de traitement dépend ainsi de la taille totale du plateau, et non du nombre de pixels présents.
+Mesuré isolément (hyperfine, 200 000 appels, 15 runs) : **~13,9 µs/appel** — noyé dans le
+bruit réseau à l'échelle actuelle, mais réel et croissant avec la taille du plateau. Visible
+dans `benchmark_v0.pdf`, chapitre « hyperfine : micro-benchmark de BoardGrid.snapshot() ».
 
-La méthode utilise également une ArrayList sans capacité initiale. La liste doit donc être agrandie plusieurs fois pendant l’ajout des pixels, ce qui provoque des réallocations.
-
-Mesuré isolément (hyperfine, 200 000 appels, 15 runs) : 2 784 ms ± 285 ms, soit environ
-13,9 µs par appel. C'est long pour une méthode appelée à chaque lecture du plateau — le coût reste noyé dans le bruit réseau à l'échelle HTTP actuelle, mais il est réel et croît avec la taille du plateau.
-
-Visible dans `benchmark_v0.pdf`, chapitre « Graphique - hyperfine : micro-benchmark de BoardGrid.snapshot() ».
-
-**Où ça devient vraiment long.** Pour vérifier que le coût dépend bien de la surface du
-plateau et non du nombre de pixels posés, le même appel a été rejoué sur des plateaux plus
-grands (500×500, 2000×2000, 6000×6000), en gardant le nombre de pixels posés strictement
-fixe à 183. Résultat : la surface passe de 9 600 à 36 000 000 cases (×3 750) et le coût par
-appel passe de 13,9 µs à **47,2 ms** (×3 345) — quasiment le même facteur. Les points mesurés
-suivent la droite `O(n)` théorique sur 4 ordres de grandeur. Sur le plateau réel (120×80), le
-coût reste négligeable ; il ne le restera plus sur un plateau nettement plus grand.
-
-Visible dans `benchmark_v0.pdf`, chapitre « Graphique - hyperfine : passage à l'échelle de
+**Passage à l'échelle.** À nombre de pixels posés fixe (183), le même appel rejoué sur des
+plateaux plus grands (jusqu'à 6000×6000) confirme la dépendance à la surface : ×3 750 de
+surface (9 600 → 36 000 000 cases) donne ×3 345 de coût (13,9 µs → **47,2 ms**), quasiment le
+même facteur. Visible dans `benchmark_v0.pdf`, chapitre « hyperfine : passage à l'échelle de
 BoardGrid.snapshot() ».
+
+---
+
+## V1 — réduction de la section critique de POST
+
+**Ce qui a été modifié.** `PixelServiceImpl.placePixel()` n'est plus `synchronized` sur toute
+sa longueur : le corps a été scindé. Une nouvelle méthode privée `applyPlacement(...)`,
+**seule** encore `synchronized`, garde l'état partagé entre joueurs — écriture des cases
+(`BoardGrid` + `LeaderboardTracker`) et combo/capture. Le reste (sauvegarde du joueur,
+statistiques, achievements, WebSocket) s'exécute hors verrou : ces opérations ne concernent
+que le joueur qui vient de jouer.
+
+**Bénéfice mesuré** (via vegeta) : `POST` concurrent passe de 216,3 ms à 86,6 ms (**-60 %**,
+médiane 204,0 → 81,2 ms). Le motif en dents de scie de la V0 est atténué mais pas supprimé :
+le verrou restant couvre l'écriture PostgreSQL et le combo/capture, encore partiellement
+sérialisés.
 
 ---
 
 ## Outillage & reproduction
 
 ```bash
-# Démarrer la stack applicative
+# Stack applicative
 docker compose up -d
 
-# Benchmark complet : charge HTTP (vegeta) + micro-benchmark (hyperfine)
+# Vegeta + hyperfine
 make bench
 
-# Micro-benchmark seul (hyperfine)
+# Micro-benchmark seul
 make bench-hyperfine
 
-# Charges HTTP ciblées
+# Scaling plateau
+make bench-hyperfine-scaling
+
+# Charges ciblées
 make bench-get-sequential
 make bench-get-concurrent
 make bench-post-sequential

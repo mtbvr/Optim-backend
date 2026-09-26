@@ -1,0 +1,1117 @@
+{
+  "generated_at": "2026-09-24T09:09:01.678219+00:00",
+  "config": {
+    "base_url": "http://localhost:8090",
+    "seq_get_runs": 30,
+    "seq_get_warmup": 5,
+    "seq_post_runs": 10,
+    "burst_size": 25,
+    "bursts": 3,
+    "get_burst_gap": 1.0,
+    "out": null
+  },
+  "tooling": {
+    "http_load": "vegeta v12.13.0",
+    "auth": "requests (Python)"
+  },
+  "phases": [
+    {
+      "name": "GET /api/pixels - sequentiel",
+      "samples": [
+        {
+          "latency_ms": 38.7134,
+          "status": 200
+        },
+        {
+          "latency_ms": 21.4016,
+          "status": 200
+        },
+        {
+          "latency_ms": 16.2053,
+          "status": 200
+        },
+        {
+          "latency_ms": 17.8677,
+          "status": 200
+        },
+        {
+          "latency_ms": 15.6589,
+          "status": 200
+        },
+        {
+          "latency_ms": 14.2693,
+          "status": 200
+        },
+        {
+          "latency_ms": 12.1078,
+          "status": 200
+        },
+        {
+          "latency_ms": 17.2569,
+          "status": 200
+        },
+        {
+          "latency_ms": 11.1429,
+          "status": 200
+        },
+        {
+          "latency_ms": 10.6958,
+          "status": 200
+        },
+        {
+          "latency_ms": 16.9068,
+          "status": 200
+        },
+        {
+          "latency_ms": 11.0378,
+          "status": 200
+        },
+        {
+          "latency_ms": 10.5465,
+          "status": 200
+        },
+        {
+          "latency_ms": 13.126,
+          "status": 200
+        },
+        {
+          "latency_ms": 12.9912,
+          "status": 200
+        },
+        {
+          "latency_ms": 12.6588,
+          "status": 200
+        },
+        {
+          "latency_ms": 16.5848,
+          "status": 200
+        },
+        {
+          "latency_ms": 10.8889,
+          "status": 200
+        },
+        {
+          "latency_ms": 15.7822,
+          "status": 200
+        },
+        {
+          "latency_ms": 11.2673,
+          "status": 200
+        },
+        {
+          "latency_ms": 15.3676,
+          "status": 200
+        },
+        {
+          "latency_ms": 31.4744,
+          "status": 200
+        },
+        {
+          "latency_ms": 22.939,
+          "status": 200
+        },
+        {
+          "latency_ms": 21.8562,
+          "status": 200
+        },
+        {
+          "latency_ms": 21.495,
+          "status": 200
+        },
+        {
+          "latency_ms": 14.6014,
+          "status": 200
+        },
+        {
+          "latency_ms": 12.4749,
+          "status": 200
+        },
+        {
+          "latency_ms": 12.397,
+          "status": 200
+        },
+        {
+          "latency_ms": 14.524,
+          "status": 200
+        },
+        {
+          "latency_ms": 14.3119,
+          "status": 200
+        }
+      ],
+      "resource_samples": [
+        {
+          "t": 1790240819.2960439,
+          "cpu_percent": 11.54,
+          "mem_mb": 314.6
+        },
+        {
+          "t": 1790240821.2813013,
+          "cpu_percent": 60.18,
+          "mem_mb": 315.8
+        },
+        {
+          "t": 1790240823.2930646,
+          "cpu_percent": 0.17,
+          "mem_mb": 316.5
+        }
+      ]
+    },
+    {
+      "name": "GET /api/pixels - concurrent",
+      "samples": [
+        {
+          "latency_ms": 37.0039,
+          "status": 200
+        },
+        {
+          "latency_ms": 39.2909,
+          "status": 200
+        },
+        {
+          "latency_ms": 41.5462,
+          "status": 200
+        },
+        {
+          "latency_ms": 42.6115,
+          "status": 200
+        },
+        {
+          "latency_ms": 53.4013,
+          "status": 200
+        },
+        {
+          "latency_ms": 53.7986,
+          "status": 200
+        },
+        {
+          "latency_ms": 54.8644,
+          "status": 200
+        },
+        {
+          "latency_ms": 57.2677,
+          "status": 200
+        },
+        {
+          "latency_ms": 60.4462,
+          "status": 200
+        },
+        {
+          "latency_ms": 59.9093,
+          "status": 200
+        },
+        {
+          "latency_ms": 61.9914,
+          "status": 200
+        },
+        {
+          "latency_ms": 63.0715,
+          "status": 200
+        },
+        {
+          "latency_ms": 64.6885,
+          "status": 200
+        },
+        {
+          "latency_ms": 65.7668,
+          "status": 200
+        },
+        {
+          "latency_ms": 65.2299,
+          "status": 200
+        },
+        {
+          "latency_ms": 65.7668,
+          "status": 200
+        },
+        {
+          "latency_ms": 65.2299,
+          "status": 200
+        },
+        {
+          "latency_ms": 65.7625,
+          "status": 200
+        },
+        {
+          "latency_ms": 66.2994,
+          "status": 200
+        },
+        {
+          "latency_ms": 66.2994,
+          "status": 200
+        },
+        {
+          "latency_ms": 67.3759,
+          "status": 200
+        },
+        {
+          "latency_ms": 69.1629,
+          "status": 200
+        },
+        {
+          "latency_ms": 68.4663,
+          "status": 200
+        },
+        {
+          "latency_ms": 71.6912,
+          "status": 200
+        },
+        {
+          "latency_ms": 71.7126,
+          "status": 200
+        },
+        {
+          "latency_ms": 33.6615,
+          "status": 200
+        },
+        {
+          "latency_ms": 29.0412,
+          "status": 200
+        },
+        {
+          "latency_ms": 36.9418,
+          "status": 200
+        },
+        {
+          "latency_ms": 29.5857,
+          "status": 200
+        },
+        {
+          "latency_ms": 29.5857,
+          "status": 200
+        },
+        {
+          "latency_ms": 29.7149,
+          "status": 200
+        },
+        {
+          "latency_ms": 33.577,
+          "status": 200
+        },
+        {
+          "latency_ms": 36.3164,
+          "status": 200
+        },
+        {
+          "latency_ms": 38.3178,
+          "status": 200
+        },
+        {
+          "latency_ms": 38.8401,
+          "status": 200
+        },
+        {
+          "latency_ms": 38.8401,
+          "status": 200
+        },
+        {
+          "latency_ms": 41.1694,
+          "status": 200
+        },
+        {
+          "latency_ms": 41.1694,
+          "status": 200
+        },
+        {
+          "latency_ms": 41.6768,
+          "status": 200
+        },
+        {
+          "latency_ms": 43.2913,
+          "status": 200
+        },
+        {
+          "latency_ms": 51.8163,
+          "status": 200
+        },
+        {
+          "latency_ms": 43.9379,
+          "status": 200
+        },
+        {
+          "latency_ms": 43.9379,
+          "status": 200
+        },
+        {
+          "latency_ms": 45.0109,
+          "status": 200
+        },
+        {
+          "latency_ms": 45.0316,
+          "status": 200
+        },
+        {
+          "latency_ms": 19.2582,
+          "status": 200
+        },
+        {
+          "latency_ms": 47.7537,
+          "status": 200
+        },
+        {
+          "latency_ms": 52.0265,
+          "status": 200
+        },
+        {
+          "latency_ms": 54.8672,
+          "status": 200
+        },
+        {
+          "latency_ms": 55.4256,
+          "status": 200
+        },
+        {
+          "latency_ms": 34.0535,
+          "status": 200
+        },
+        {
+          "latency_ms": 39.2895,
+          "status": 200
+        },
+        {
+          "latency_ms": 40.0336,
+          "status": 200
+        },
+        {
+          "latency_ms": 39.2895,
+          "status": 200
+        },
+        {
+          "latency_ms": 39.2895,
+          "status": 200
+        },
+        {
+          "latency_ms": 39.2895,
+          "status": 200
+        },
+        {
+          "latency_ms": 40.0336,
+          "status": 200
+        },
+        {
+          "latency_ms": 40.0336,
+          "status": 200
+        },
+        {
+          "latency_ms": 40.0336,
+          "status": 200
+        },
+        {
+          "latency_ms": 41.3908,
+          "status": 200
+        },
+        {
+          "latency_ms": 41.3908,
+          "status": 200
+        },
+        {
+          "latency_ms": 46.0111,
+          "status": 200
+        },
+        {
+          "latency_ms": 46.7552,
+          "status": 200
+        },
+        {
+          "latency_ms": 49.453,
+          "status": 200
+        },
+        {
+          "latency_ms": 49.453,
+          "status": 200
+        },
+        {
+          "latency_ms": 51.317,
+          "status": 200
+        },
+        {
+          "latency_ms": 19.8897,
+          "status": 200
+        },
+        {
+          "latency_ms": 55.0567,
+          "status": 200
+        },
+        {
+          "latency_ms": 54.8442,
+          "status": 200
+        },
+        {
+          "latency_ms": 55.9115,
+          "status": 200
+        },
+        {
+          "latency_ms": 56.4502,
+          "status": 200
+        },
+        {
+          "latency_ms": 57.0197,
+          "status": 200
+        },
+        {
+          "latency_ms": 58.8784,
+          "status": 200
+        },
+        {
+          "latency_ms": 63.2168,
+          "status": 200
+        },
+        {
+          "latency_ms": 63.2168,
+          "status": 200
+        }
+      ],
+      "resource_samples": [
+        {
+          "t": 1790240825.2988286,
+          "cpu_percent": 39.81,
+          "mem_mb": 317.8
+        },
+        {
+          "t": 1790240827.3032339,
+          "cpu_percent": 34.71,
+          "mem_mb": 317.8
+        }
+      ]
+    },
+    {
+      "name": "POST /api/pixels - sequentiel",
+      "samples": [
+        {
+          "latency_ms": 76.9131,
+          "status": 200
+        },
+        {
+          "latency_ms": 19.5199,
+          "status": 200
+        },
+        {
+          "latency_ms": 27.8799,
+          "status": 200
+        },
+        {
+          "latency_ms": 34.3657,
+          "status": 200
+        },
+        {
+          "latency_ms": 34.6194,
+          "status": 200
+        },
+        {
+          "latency_ms": 31.7584,
+          "status": 200
+        },
+        {
+          "latency_ms": 20.9384,
+          "status": 200
+        },
+        {
+          "latency_ms": 22.8654,
+          "status": 200
+        },
+        {
+          "latency_ms": 26.4582,
+          "status": 200
+        },
+        {
+          "latency_ms": 45.8275,
+          "status": 200
+        }
+      ],
+      "resource_samples": [
+        {
+          "t": 1790240829.3336227,
+          "cpu_percent": 0.21,
+          "mem_mb": 317.8
+        },
+        {
+          "t": 1790240831.3123953,
+          "cpu_percent": 0.18,
+          "mem_mb": 317.7
+        },
+        {
+          "t": 1790240833.3226311,
+          "cpu_percent": 0.19,
+          "mem_mb": 317.7
+        },
+        {
+          "t": 1790240835.325989,
+          "cpu_percent": 0.2,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240837.335826,
+          "cpu_percent": 7.56,
+          "mem_mb": 317.6
+        },
+        {
+          "t": 1790240839.3339758,
+          "cpu_percent": 0.17,
+          "mem_mb": 317.5
+        },
+        {
+          "t": 1790240841.3453283,
+          "cpu_percent": 0.18,
+          "mem_mb": 317.5
+        },
+        {
+          "t": 1790240843.3550258,
+          "cpu_percent": 0.18,
+          "mem_mb": 317.5
+        },
+        {
+          "t": 1790240845.3594034,
+          "cpu_percent": 1.33,
+          "mem_mb": 317.6
+        },
+        {
+          "t": 1790240847.3643348,
+          "cpu_percent": 0.23,
+          "mem_mb": 317.6
+        },
+        {
+          "t": 1790240849.3664057,
+          "cpu_percent": 0.21,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240851.376249,
+          "cpu_percent": 0.17,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240853.3830323,
+          "cpu_percent": 3.82,
+          "mem_mb": 317.7
+        },
+        {
+          "t": 1790240855.3918498,
+          "cpu_percent": 0.17,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240857.3935459,
+          "cpu_percent": 0.19,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240859.3988879,
+          "cpu_percent": 0.19,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240861.417131,
+          "cpu_percent": 0.19,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240863.4113562,
+          "cpu_percent": 0.2,
+          "mem_mb": 317.7
+        },
+        {
+          "t": 1790240865.422466,
+          "cpu_percent": 0.19,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240867.421952,
+          "cpu_percent": 0.21,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240869.4461913,
+          "cpu_percent": 0.19,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240871.4409478,
+          "cpu_percent": 0.2,
+          "mem_mb": 317.6
+        },
+        {
+          "t": 1790240873.449085,
+          "cpu_percent": 0.22,
+          "mem_mb": 317.6
+        },
+        {
+          "t": 1790240875.461832,
+          "cpu_percent": 0.2,
+          "mem_mb": 317.5
+        },
+        {
+          "t": 1790240877.4601119,
+          "cpu_percent": 0.21,
+          "mem_mb": 317.5
+        },
+        {
+          "t": 1790240879.4830532,
+          "cpu_percent": 23.35,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240881.4746747,
+          "cpu_percent": 0.21,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240883.479157,
+          "cpu_percent": 0.19,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240885.4854608,
+          "cpu_percent": 0.21,
+          "mem_mb": 317.4
+        },
+        {
+          "t": 1790240887.4890382,
+          "cpu_percent": 4.84,
+          "mem_mb": 316.5
+        },
+        {
+          "t": 1790240889.4996397,
+          "cpu_percent": 0.21,
+          "mem_mb": 316.1
+        },
+        {
+          "t": 1790240891.502305,
+          "cpu_percent": 0.18,
+          "mem_mb": 316.1
+        },
+        {
+          "t": 1790240893.510198,
+          "cpu_percent": 0.19,
+          "mem_mb": 316.1
+        },
+        {
+          "t": 1790240895.5225213,
+          "cpu_percent": 0.22,
+          "mem_mb": 316.0
+        },
+        {
+          "t": 1790240897.5227764,
+          "cpu_percent": 0.19,
+          "mem_mb": 316.2
+        },
+        {
+          "t": 1790240899.5341423,
+          "cpu_percent": 0.24,
+          "mem_mb": 316.1
+        },
+        {
+          "t": 1790240901.5429897,
+          "cpu_percent": 0.23,
+          "mem_mb": 316.1
+        },
+        {
+          "t": 1790240903.5464466,
+          "cpu_percent": 0.21,
+          "mem_mb": 316.1
+        },
+        {
+          "t": 1790240905.5530136,
+          "cpu_percent": 7.81,
+          "mem_mb": 316.1
+        },
+        {
+          "t": 1790240907.5589433,
+          "cpu_percent": 0.21,
+          "mem_mb": 316.1
+        },
+        {
+          "t": 1790240909.565128,
+          "cpu_percent": 0.21,
+          "mem_mb": 316.1
+        },
+        {
+          "t": 1790240911.5736272,
+          "cpu_percent": 0.21,
+          "mem_mb": 316.1
+        },
+        {
+          "t": 1790240913.5806062,
+          "cpu_percent": 66.34,
+          "mem_mb": 316.5
+        },
+        {
+          "t": 1790240915.5843909,
+          "cpu_percent": 0.18,
+          "mem_mb": 316.2
+        },
+        {
+          "t": 1790240917.5910547,
+          "cpu_percent": 0.19,
+          "mem_mb": 316.2
+        },
+        {
+          "t": 1790240919.617582,
+          "cpu_percent": 0.21,
+          "mem_mb": 316.2
+        },
+        {
+          "t": 1790240921.6164205,
+          "cpu_percent": 5.01,
+          "mem_mb": 316.5
+        }
+      ]
+    },
+    {
+      "name": "POST /api/pixels - concurrent",
+      "samples": [
+        {
+          "latency_ms": 75.5826,
+          "status": 200
+        },
+        {
+          "latency_ms": 88.682,
+          "status": 200
+        },
+        {
+          "latency_ms": 99.0844,
+          "status": 200
+        },
+        {
+          "latency_ms": 114.2744,
+          "status": 200
+        },
+        {
+          "latency_ms": 122.6609,
+          "status": 200
+        },
+        {
+          "latency_ms": 135.2369,
+          "status": 200
+        },
+        {
+          "latency_ms": 147.3073,
+          "status": 200
+        },
+        {
+          "latency_ms": 158.4096,
+          "status": 200
+        },
+        {
+          "latency_ms": 175.5057,
+          "status": 200
+        },
+        {
+          "latency_ms": 188.5521,
+          "status": 200
+        },
+        {
+          "latency_ms": 186.7141,
+          "status": 200
+        },
+        {
+          "latency_ms": 204.0333,
+          "status": 200
+        },
+        {
+          "latency_ms": 215.1258,
+          "status": 200
+        },
+        {
+          "latency_ms": 225.5,
+          "status": 200
+        },
+        {
+          "latency_ms": 161.3349,
+          "status": 200
+        },
+        {
+          "latency_ms": 274.6505,
+          "status": 200
+        },
+        {
+          "latency_ms": 285.3035,
+          "status": 200
+        },
+        {
+          "latency_ms": 306.1926,
+          "status": 200
+        },
+        {
+          "latency_ms": 336.7038,
+          "status": 200
+        },
+        {
+          "latency_ms": 348.9332,
+          "status": 200
+        },
+        {
+          "latency_ms": 371.8565,
+          "status": 200
+        },
+        {
+          "latency_ms": 380.4143,
+          "status": 200
+        },
+        {
+          "latency_ms": 390.4777,
+          "status": 200
+        },
+        {
+          "latency_ms": 400.5244,
+          "status": 200
+        },
+        {
+          "latency_ms": 408.402,
+          "status": 200
+        },
+        {
+          "latency_ms": 52.989,
+          "status": 200
+        },
+        {
+          "latency_ms": 72.4208,
+          "status": 200
+        },
+        {
+          "latency_ms": 86.5285,
+          "status": 200
+        },
+        {
+          "latency_ms": 104.3479,
+          "status": 200
+        },
+        {
+          "latency_ms": 114.6771,
+          "status": 200
+        },
+        {
+          "latency_ms": 129.2716,
+          "status": 200
+        },
+        {
+          "latency_ms": 142.278,
+          "status": 200
+        },
+        {
+          "latency_ms": 157.3956,
+          "status": 200
+        },
+        {
+          "latency_ms": 173.6911,
+          "status": 200
+        },
+        {
+          "latency_ms": 194.6518,
+          "status": 200
+        },
+        {
+          "latency_ms": 202.4597,
+          "status": 200
+        },
+        {
+          "latency_ms": 218.8145,
+          "status": 200
+        },
+        {
+          "latency_ms": 236.7949,
+          "status": 200
+        },
+        {
+          "latency_ms": 243.7794,
+          "status": 200
+        },
+        {
+          "latency_ms": 264.3998,
+          "status": 200
+        },
+        {
+          "latency_ms": 272.8888,
+          "status": 200
+        },
+        {
+          "latency_ms": 292.1594,
+          "status": 200
+        },
+        {
+          "latency_ms": 309.6321,
+          "status": 200
+        },
+        {
+          "latency_ms": 330.3135,
+          "status": 200
+        },
+        {
+          "latency_ms": 294.6444,
+          "status": 200
+        },
+        {
+          "latency_ms": 364.0247,
+          "status": 200
+        },
+        {
+          "latency_ms": 371.1633,
+          "status": 200
+        },
+        {
+          "latency_ms": 383.3206,
+          "status": 200
+        },
+        {
+          "latency_ms": 399.6782,
+          "status": 200
+        },
+        {
+          "latency_ms": 406.772,
+          "status": 200
+        },
+        {
+          "latency_ms": 61.6705,
+          "status": 200
+        },
+        {
+          "latency_ms": 79.6573,
+          "status": 200
+        },
+        {
+          "latency_ms": 88.7516,
+          "status": 200
+        },
+        {
+          "latency_ms": 98.5943,
+          "status": 200
+        },
+        {
+          "latency_ms": 108.2423,
+          "status": 200
+        },
+        {
+          "latency_ms": 117.3499,
+          "status": 200
+        },
+        {
+          "latency_ms": 127.1912,
+          "status": 200
+        },
+        {
+          "latency_ms": 134.9263,
+          "status": 200
+        },
+        {
+          "latency_ms": 145.0488,
+          "status": 200
+        },
+        {
+          "latency_ms": 152.767,
+          "status": 200
+        },
+        {
+          "latency_ms": 163.8022,
+          "status": 200
+        },
+        {
+          "latency_ms": 176.6875,
+          "status": 200
+        },
+        {
+          "latency_ms": 188.79,
+          "status": 200
+        },
+        {
+          "latency_ms": 197.7717,
+          "status": 200
+        },
+        {
+          "latency_ms": 207.0831,
+          "status": 200
+        },
+        {
+          "latency_ms": 217.0788,
+          "status": 200
+        },
+        {
+          "latency_ms": 225.0948,
+          "status": 200
+        },
+        {
+          "latency_ms": 237.1351,
+          "status": 200
+        },
+        {
+          "latency_ms": 247.876,
+          "status": 200
+        },
+        {
+          "latency_ms": 257.3894,
+          "status": 200
+        },
+        {
+          "latency_ms": 204.6345,
+          "status": 200
+        },
+        {
+          "latency_ms": 275.936,
+          "status": 200
+        },
+        {
+          "latency_ms": 284.4978,
+          "status": 200
+        },
+        {
+          "latency_ms": 292.6789,
+          "status": 200
+        },
+        {
+          "latency_ms": 313.4523,
+          "status": 200
+        }
+      ],
+      "resource_samples": [
+        {
+          "t": 1790240923.6161897,
+          "cpu_percent": 148.32,
+          "mem_mb": 337.9
+        },
+        {
+          "t": 1790240925.6256611,
+          "cpu_percent": 0.2,
+          "mem_mb": 322.2
+        },
+        {
+          "t": 1790240927.6295583,
+          "cpu_percent": 0.21,
+          "mem_mb": 322.1
+        },
+        {
+          "t": 1790240929.6329355,
+          "cpu_percent": 0.15,
+          "mem_mb": 322.0
+        },
+        {
+          "t": 1790240931.6411357,
+          "cpu_percent": 0.13,
+          "mem_mb": 322.0
+        },
+        {
+          "t": 1790240933.6460083,
+          "cpu_percent": 0.2,
+          "mem_mb": 344.5
+        },
+        {
+          "t": 1790240935.6526387,
+          "cpu_percent": 0.13,
+          "mem_mb": 332.6
+        },
+        {
+          "t": 1790240937.6606889,
+          "cpu_percent": 0.31,
+          "mem_mb": 332.4
+        },
+        {
+          "t": 1790240939.6694055,
+          "cpu_percent": 0.16,
+          "mem_mb": 332.4
+        },
+        {
+          "t": 1790240941.6778653,
+          "cpu_percent": 129.68,
+          "mem_mb": 341.0
+        }
+      ]
+    }
+  ]
+}
