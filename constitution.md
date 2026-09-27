@@ -13,7 +13,9 @@ Raisonne en cycles CPU, lignes de cache, pages disque et allers-retours réseau 
 
 ### 1.1 Constantes matérielles de référence
 
-Tout ordre de grandeur cité dans une réponse se rapporte à ce barème, valable sur toute machine x86-64 moderne. **N'inscris jamais ici les caractéristiques d'un poste particulier** : le banc d'essai se déclare dans le rapport d'audit, avec la mesure qu'il produit.
+Tout ordre de grandeur cité dans une réponse se rapporte à ce barème, valable sur toute machine x86-64 moderne. **N'inscris jamais ici les caractéristiques d'un poste particulier** : le banc d'essai est déclaré dans `Audit.md`, section « Environnement de test », et c'est la seule source à citer pour une caractéristique matérielle concrète (cœurs, tailles de cache, runtime).
+
+**Le backend tourne en conteneur Docker sous WSL2, pas sur métal nu.** Toute mesure en subit la conséquence : RAM plafonnée par WSL2, couche réseau supplémentaire, horloge et ordonnancement indirects. Une hypothèse qui suppose un accès direct au matériel (fréquence fixe, affinité de cœur, NUMA) est refusée tant qu'elle n'est pas vérifiée dans cet environnement.
 
 | Niveau mémoire | Latence | Coût relatif |
 |---|---|---|
@@ -76,17 +78,25 @@ Code atteint par ces routes — **contrainte zéro-allocation** :
 **COLD PATH — lisibilité prioritaire, optimisation INTERDITE :**
 démarrage Spring, `@PostConstruct` (`BoardGrid.init`, `LeaderboardTracker.init`), configuration, `AuthServiceImpl`, migrations Flyway, `GlobalExceptionHandler`, catalogues (`PerkCatalog`, `SkinCatalog`, `AchievementCatalog`), routes `/api/profile`, `/api/skins`, `/api/emotes`, frontend.
 
-### 2.1 Relevé de référence
+### 2.1 Métriques de pilotage
 
-Baseline mesurée par `make bench`, latence moyenne en ms. **Ce relevé est daté et reproductible, ce n'est pas un profil de machine** : le rejouer sur un autre poste donne d'autres valeurs, mais les mêmes rapports.
+**`Audit.md` est la source de vérité de l'état mesuré.** Ce fichier-ci ne contient aucun chiffre de version : il définit *quoi* mesurer, `Audit.md` dit *où on en est*. Avant toute affirmation chiffrée, lis le tableau de synthèse d'`Audit.md` et cite la version courante.
 
-| Version | GET séq. | GET conc. | POST séq. | POST conc. |
-|---|---:|---:|---:|---:|
-| V0 (état initial) | 16,3 | 48,8 | 34,1 | **216,3** |
+| Indicateur | Définition | Lu dans |
+|---|---|---|
+| **Part sérialisée** | rapport POST concurrent / POST séquentiel | tableau de synthèse `Audit.md` |
+| Latence de lecture | GET séquentiel et concurrent | idem |
+| Coût unitaire de lecture du plateau | `BoardGrid.snapshot()` isolé (`make bench-hyperfine`) | idem |
+| Sensibilité à la surface | même appel à nombre de pixels posés constant (`make bench-hyperfine-scaling`) | idem |
 
-Le rapport significatif est **POST concurrent / POST séquentiel = ×6,3** : signature d'une sérialisation des écritures. Toute optimisation du POST se juge sur ce rapport, pas sur la valeur absolue.
+**L'indicateur directeur est la part sérialisée, pas la latence absolue.** Elle seule isole ce que la concurrence dégrade ; une latence absolue qui baisse pendant que ce rapport stagne ne prouve rien sur la contention. Tout levier visant le POST se juge sur ce rapport.
 
-Micro-mesure isolée : `BoardGrid.snapshot()` = **13,9 µs par appel** (hyperfine, 200 000 itérations, 15 runs, 2 784 ms ± 285 ms), coût proportionnel à la **surface** du plateau et non au nombre de pixels posés — vérifié sur 4 ordres de grandeur (47,2 ms à 6000 × 6000, 183 pixels posés).
+Propriétés structurelles du code, indépendantes de toute version tant qu'elles n'ont pas été corrigées :
+
+- `BoardGrid.snapshot()` coûte en **O(surface du plateau)**, pas en O(pixels posés) — vérifié sur 4 ordres de grandeur.
+- Le POST reste partiellement sérialisé tant qu'une écriture SQL subsiste dans une section critique (§3.1, §3.7).
+
+Relevés bruts dans `benchmark/` (`v<N>-<levier>.json`), profils et flamegraphs à la racine.
 
 ---
 
@@ -98,9 +108,10 @@ Sur le HOT PATH défini en §2, il est **formellement interdit** de produire :
 
 ### 3.1 Verrous & contention
 
-- **Interdit** de verrouiller une méthode entière. `PixelServiceImpl.placePixel` est déclaré `synchronized` : le verrou couvre validation, écriture PostgreSQL, calcul des captures **et** diffusion WebSocket. Un seul joueur écrit à la fois ; c'est la cause mesurée du ×6,3 sous charge.
-- **Imposé** : une section critique ne protège que la mutation d'un état partagé. Toute I/O (SQL, socket, log) en sort.
-- **Interdit** `synchronized` / `ReentrantLock` pour un compteur ou un drapeau. `GlobalPlacementCounter.incrementAndGet()` sérialise tous les joueurs pour incrémenter un `long` : `AtomicLong` compile en `LOCK XADD`, sans appel système ni mise en veille.
+- **Interdit** de verrouiller une méthode entière du hot path. Un moniteur couvrant validation, I/O et diffusion sérialise tous les joueurs quel que soit le nombre de cœurs : le symptôme est un rapport POST concurrent / séquentiel élevé et des événements `JavaMonitorEnter` en nombre égal aux requêtes.
+- **Imposé** : une section critique ne protège que la **mutation d'un état partagé entre joueurs** — écriture des cases, compteurs de classement. Tout ce qui ne concerne que le joueur courant (sauvegarde de son entité, statistiques, achievements, réponse, diffusion) s'exécute **hors verrou**.
+- **Interdit d'élargir le périmètre d'une section critique existante**, quelle qu'elle soit. Ajouter une I/O (SQL, socket, log) dans une méthode `synchronized` allonge mécaniquement le temps de détention et annule tout gain antérieur : réduire ce périmètre est un levier, l'étendre est une régression. Sous contention, ajouter des cœurs **dégrade** alors le débit (USL) — le verrou coûte plus que le calcul qu'il protège.
+- **Interdit** `synchronized` / `ReentrantLock` pour un compteur ou un drapeau. `GlobalPlacementCounter.incrementAndGet()` sérialise tous les joueurs pour incrémenter un `long` : un moniteur global sur le chemin de diffusion. `AtomicLong` compile en `LOCK XADD`, sans appel système ni mise en veille.
 - **Interdit** d'élargir une section critique : sous contention, ajouter des cœurs **dégrade** le débit (USL). Le verrou coûte alors plus que le calcul qu'il protège.
 - **Imposé** pour une donnée lue massivement et écrite rarement : publication par `AtomicReference` sur copie immuable (lecture sans verrou), jamais un verrou en lecture.
 - **Imposé** : toute proposition touchant un verrou joint une mesure de temps d'attente (événements `jdk.JavaMonitorEnter` en JFR), pas une intuition.
@@ -160,6 +171,7 @@ Sur le HOT PATH défini en §2, il est **formellement interdit** de produire :
 ### 3.7 Persistance SQL & cache
 
 - **Interdit** tout `findById` / `save` **par élément** dans une boucle. `writeCell` en fait un couple par cellule : 18 allers-retours pour une bombe 3×3, 400 pour une capture de 200 cases. Substituts : `saveAll`, `JdbcTemplate.batchUpdate`, `INSERT ... ON CONFLICT DO UPDATE`.
+- **Interdit** de laisser un N+1 **à l'intérieur** d'une section critique. Verrou tenu, son coût n'est plus de la latence SQL mais du temps de sérialisation imposé à tous les joueurs : il plafonne la part sérialisée mesurée en §2.1. Tant que `writeCell` est appelé sous verrou, c'est la cible prioritaire du POST concurrent.
 - **Interdit** toute agrégation ou lecture complète de table sur une route chargée. `LeaderboardTracker.snapshot()` trie la table des compteurs et déclenche jusqu'à 10 `findById` **par placement** ; `StatsController` appelle `pixelRepository.findAll()`.
 - **Interdit** de proposer un index sans joindre l'`EXPLAIN (ANALYZE, BUFFERS)` avant et après. Sur une requête chaude, `shared read > 0` signale un index manquant ou un cache froid ; l'objectif est `shared hit` seul.
 - **Interdit** de laisser le pool de connexions par défaut sur un chemin chargé. Dimensionner `spring.datasource.hikari.maximum-pool-size` selon **(cœurs CPU × 2) + nombre de disques**, déclarer `idle-timeout` et `max-lifetime`. Surdimensionner dégrade le débit par bascules de contexte et contention disque.
@@ -219,6 +231,9 @@ Diagnostic complémentaire, hors Makefile :
 jcmd <pid> JFR.start settings=profile filename=locks.jfr
 jfr summary locks.jfr
 
+# Flamegraph de contention (mode verrou) — outil de référence pour tout diagnostic de lock
+asprof -d 30 --lock -f flamegraph-post-concurrent.html <pid>
+
 # Profil CPU (flamegraph) — chercher les plateaux larges au sommet
 asprof -d 30 -e cpu -f cpu.html <pid>
 
@@ -258,7 +273,7 @@ Toute autre commande doit être justifiée dans la réponse.
 
 Une modification du hot path n'est acceptée que si **les six** cases sont cochées :
 
-- [ ] Mesure `avant` rejouée avec la cible `make` correspondante, résultat archivé
+- [ ] Mesure `avant` rejouée avec la cible `make` correspondante, relevé brut archivé dans `benchmark/` sous `v<N>-<levier>.json`
 - [ ] Mesure `après` obtenue avec **exactement** la même cible et les mêmes variables
 - [ ] Profil joint prouvant le mécanisme invoqué (JFR pour un verrou, allocations pour un objet, `EXPLAIN` pour une requête)
 - [ ] Gain confirmé **sous charge concurrente**, avec P50 / P90 / P99 et écart-type (écart < écart-type = **aucun gain**, annuler)
@@ -269,12 +284,13 @@ Une modification du hot path n'est acceptée que si **les six** cases sont coch�
 
 ## 7. TRAÇABILITÉ & RAPPORT D'AUDIT
 
-Chaque intervention sur le hot path produit une ligne dans `Audit.md` :
+`Audit.md` est la source de vérité de l'audit. **Respecte sa structure existante, ne la remplace pas.** Chaque intervention sur le hot path y produit :
 
-| Version | Cible | Hypothèse matérielle | Commande de vérification | Mesuré avant | Mesuré après | Verdict |
-|---|---|---|---|---|---|---|
+1. une **ligne dans le tableau « Synthèse des performances par version »** — version, levier appliqué, les quatre latences ;
+2. une **section dédiée `## V<N> — <levier>`** indiquant ce qui a été modifié, le bénéfice mesuré (valeur, médiane, pourcentage) et **ce qui reste sérialisé ou non résolu** ;
+3. le relevé brut correspondant dans `benchmark/`.
 
-`Verdict` ∈ { `RETENU`, `REJETÉ — régression`, `REJETÉ — gain sous écart-type`, `REJETÉ — violation §3` }.
+Une tentative infructueuse suit le même format, avec un verdict explicite ∈ { `RETENU`, `REJETÉ — régression`, `REJETÉ — gain sous écart-type`, `REJETÉ — violation §3` }, la régression chiffrée, puis annulation dans le code.
 
 Le journal alimente les quatre chapitres obligatoires du rapport d'audit :
 

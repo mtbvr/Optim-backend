@@ -13,17 +13,19 @@
 - **Mesurer sous concurrence**, jamais en séquentiel seul : le défaut mesuré de ce projet n'apparaît que sous contention. Rapporter P50 / P90 / P99, jamais une moyenne seule.
 - **Definition of done** (constitution.md §6, 6 cases) : avant/après avec la même cible `make`, profil prouvant le mécanisme, gain confirmé sous charge avec écart-type, comportement de jeu inchangé, entrée dans `Audit.md` — y compris en cas d'échec.
 
-## État mesuré (V0, `make bench`)
+## État mesuré
 
-| | GET séq. | GET conc. | POST séq. | POST conc. |
-|---|---:|---:|---:|---:|
-| Latence moyenne (ms) | 16,3 | 48,8 | 34,1 | **216,3** |
+**Ne recopie aucun chiffre ici.** Avant toute affirmation chiffrée, lis le tableau de synthèse d'`Audit.md` et cite la version courante. Relevés bruts dans `benchmark/`.
 
-Défauts diagnostiqués, à ne pas redécouvrir :
+Indicateur directeur : **rapport POST concurrent / POST séquentiel** (part sérialisée). Une latence absolue qui baisse pendant que ce rapport stagne ne prouve rien sur la contention.
 
-1. `PixelServiceImpl.placePixel` est `synchronized` sur toute la méthode → écritures sérialisées, rapport POST conc./séq. = ×6,3, 75 événements `JavaMonitorEnter` sous JFR.
-2. `GlobalPlacementCounter.incrementAndGet()` est `synchronized` pour incrémenter un `long`.
-3. `BoardGrid.snapshot()` balaie les 9 600 cases à chaque lecture et construit un `ArrayList` sans capacité → 13,9 µs par appel, coût en O(surface) et non en O(pixels posés).
+Défauts structurels à ne pas redécouvrir — valables tant que le code n'a pas changé, à vérifier avant d'en parler :
+
+1. `writeCell` fait `findById` + `save` **par cellule** et tourne sous la section critique (`applyPlacement`) : verrou tenu pendant l'I/O SQL → plafonne la part sérialisée. Cible prioritaire du POST.
+2. `GlobalPlacementCounter.incrementAndGet()` est `synchronized` pour incrémenter un `long`, sur le chemin de diffusion.
+3. `BoardGrid.snapshot()` balaie les 9 600 cases à chaque lecture et construit un `ArrayList` sans capacité → coût en O(surface) et non en O(pixels posés).
+
+Acquis à ne pas régresser : hors section critique, tout ce qui ne concerne que le joueur courant (sauvegarde de son entité, statistiques, achievements, diffusion WebSocket).
 
 ## Commandes
 
