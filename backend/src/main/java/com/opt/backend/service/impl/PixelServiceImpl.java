@@ -143,6 +143,9 @@ public class PixelServiceImpl implements PixelService {
         List<Coord> targetCells = resolveTargetCells(request.x(), request.y(), isBomb);
         PlacementResult result = applyPlacement(userId, team, color, targetCells, isBomb, isFortress,
                 request.x(), request.y());
+        for (CellChange change : result.changes()) {
+            persistCell(change, color, userId);
+        }
 
         boolean bonusApplied = bonusZoneTracker.isActiveAt(request.x(), request.y());
         int pointsAwarded = result.basePoints() + result.comboPoints() + result.capturePoints();
@@ -184,8 +187,10 @@ public class PixelServiceImpl implements PixelService {
                                                           List<Coord> targetCells, boolean isBomb,
                                                           boolean isFortress, int x, int y) {
         List<PixelDto> placedDtos = new ArrayList<>();
+        List<CellChange> changes = new ArrayList<>();
         for (Coord cell : targetCells) {
-            placedDtos.add(writeCell(cell, team, color, userId));
+            changes.add(applyCellMutation(cell, team));
+            placedDtos.add(new PixelDto(cell.x(), cell.y(), team));
         }
         if (isFortress) {
             perkEffectsTracker.fortifyCell(new Coord(x, y), fortressDuration(userId));
@@ -203,34 +208,40 @@ public class PixelServiceImpl implements PixelService {
                     .filter(coord -> !perkEffectsTracker.isCellFortified(coord))
                     .toList();
             for (Coord cell : capturedCells) {
-                capturedDtos.add(writeCell(cell, team, color, userId));
+                changes.add(applyCellMutation(cell, team));
+                capturedDtos.add(new PixelDto(cell.x(), cell.y(), team));
             }
             capturePoints = capturedCells.size() * properties.getCaptureBonusPerPixel();
         }
 
-        return new PlacementResult(placedDtos, capturedDtos, basePoints, comboPoints, capturePoints);
+        return new PlacementResult(placedDtos, capturedDtos, basePoints, comboPoints, capturePoints, changes);
     }
 
     private record PlacementResult(List<PixelDto> placedDtos, List<PixelDto> capturedDtos, int basePoints,
-                                    int comboPoints, int capturePoints) {
+                                    int comboPoints, int capturePoints, List<CellChange> changes) {
     }
 
-    private PixelDto writeCell(Coord cell, Team team, String color, UUID userId) {
-        PixelId id = new PixelId(cell.x(), cell.y());
+    private record CellChange(Coord cell, Team previousTeam, Team newTeam) {
+    }
+
+    private CellChange applyCellMutation(Coord cell, Team newTeam) {
+        Team previousTeam = boardGrid.get(cell.x(), cell.y());
+        boardGrid.set(cell.x(), cell.y(), newTeam);
+        return new CellChange(cell, previousTeam, newTeam);
+    }
+
+    private void persistCell(CellChange change, String color, UUID userId) {
+        PixelId id = new PixelId(change.cell().x(), change.cell().y());
         Optional<Pixel> existing = pixelRepository.findById(id);
         UUID previousOwner = existing.map(Pixel::getUpdatedBy).orElse(null);
-        Team previousTeam = existing.map(Pixel::getTeam).orElse(null);
 
-        Pixel pixel = existing.orElseGet(() -> new Pixel(id, color, team, userId));
+        Pixel pixel = existing.orElseGet(() -> new Pixel(id, color, change.newTeam(), userId));
         pixel.setColor(color);
-        pixel.setTeam(team);
+        pixel.setTeam(change.newTeam());
         pixel.setUpdatedBy(userId);
         pixelRepository.save(pixel);
 
-        boardGrid.set(cell.x(), cell.y(), team);
-        leaderboardTracker.recordChange(previousOwner, previousTeam, userId, team);
-
-        return PixelDto.from(pixel);
+        leaderboardTracker.recordChange(previousOwner, change.previousTeam(), userId, change.newTeam());
     }
 
     private List<Coord> resolveTargetCells(int x, int y, boolean isBomb) {

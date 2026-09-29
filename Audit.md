@@ -44,11 +44,12 @@ Latence moyenne, en millisecondes (plus bas = meilleur) :
 | Version | Stratégie | GET séq. | GET conc. | POST séq. | POST conc. |
 |---|---|---:|---:|---:|---:|
 | **V0** | Baseline (état initial) | 16.3 | 48.8 | 34.1 | 216.3 |
-| **V1** | Section critique de `placePixel()` réduite | 8.6 | 35.0 | 18.5 | **86.6** |
+| **V1** | Section critique de `placePixel()` réduite | 8.6 | 35.0 | 18.5 | 86.6 |
+| **V2** | I/O PostgreSQL sortie du verrou | 7.2 | 26.0 | 12.1 | **55.6** |
 
 > Signal le plus fort : le `POST` concurrent explose (34 → 216 ms, ×6,3) là où le séquentiel
 > reste bas — signature d'une sérialisation des écritures, confirmée au diagnostic. En V1,
-> il retombe à 86,6 ms (**-60 %**).
+> il retombe à 86,6 ms (**-60 %**) ; en V2, à 55,6 ms (**-74 %** au total).
 
 ---
 
@@ -106,6 +107,30 @@ que le joueur qui vient de jouer.
 médiane 204,0 → 81,2 ms). Le motif en dents de scie de la V0 est atténué mais pas supprimé :
 le verrou restant couvre l'écriture PostgreSQL et le combo/capture, encore partiellement
 sérialisés.
+
+---
+
+## V2 — sortie de l'I/O PostgreSQL hors du verrou
+
+**Ce qui a été modifié.** `applyPlacement(...)` ne fait plus le lien avec PostgreSQL.
+`writeCell(...)` (lecture `findById` + `save` par cellule) est remplacé par deux méthodes :
+`applyCellMutation(...)`, appelée sous verrou, qui ne fait que lire/écrire `BoardGrid` en
+mémoire (`previousTeam` récupéré gratuitement avant l'écrasement) ; `persistCell(...)`,
+appelée après la libération du verrou dans `placePixel()`, qui fait la lecture/écriture
+PostgreSQL et met à jour `LeaderboardTracker` (structures thread-safe : `ConcurrentHashMap`,
+`AtomicInteger`). Le verrou ne protège plus que ce qui doit rester une vue cohérente du
+plateau : la mutation `BoardGrid` et l'évaluation combo/capture, qui la lisent.
+
+**Bénéfice mesuré** (via vegeta, 3 répétitions) : `POST` concurrent passe de 86,6 ms à
+**55,6 ms** (médiane 81,2 → 55,1 ms), soit **-36 %** de plus qu'en V1 et **-74 %** au total
+depuis la V0. Résultat stable sur les 3 mesures (55,6 / 62,9 / 63,2 ms).
+
+**Risque assumé.** La mise à jour PostgreSQL et `LeaderboardTracker` se fait maintenant
+quelques instructions après la mutation `BoardGrid` au lieu d'être atomique avec elle : en cas
+de crash exactement dans cette fenêtre, l'état diffusé aux clients pourrait devancer l'état
+persisté. Ce risque existait déjà en V1 pour le reste du traitement (statistiques,
+achievements, diffusion WebSocket) déplacé hors verrou ; V2 l'étend à la persistance des
+cellules.
 
 ---
 
