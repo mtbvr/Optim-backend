@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class BoardGrid {
@@ -17,6 +19,7 @@ public class BoardGrid {
     private final PixelWarsProperties properties;
     private final PixelRepository pixelRepository;
     private Team[][] grid;
+    private final Set<Coord> occupiedCells = ConcurrentHashMap.newKeySet();
 
     public BoardGrid(PixelWarsProperties properties, PixelRepository pixelRepository) {
         this.properties = properties;
@@ -31,6 +34,7 @@ public class BoardGrid {
             int y = pixel.getId().getY();
             if (isInBounds(x, y)) {
                 grid[y][x] = pixel.getTeam();
+                occupiedCells.add(new Coord(x, y));
             }
         }
     }
@@ -53,17 +57,13 @@ public class BoardGrid {
 
     public void set(int x, int y, Team team) {
         grid[y][x] = team;
+        occupiedCells.add(new Coord(x, y));
     }
 
     public List<PixelDto> snapshot() {
-        List<PixelDto> result = new ArrayList<>();
-        for (int y = 0; y < grid.length; y++) {
-            for (int x = 0; x < grid[y].length; x++) {
-                Team team = grid[y][x];
-                if (team != null) {
-                    result.add(new PixelDto(x, y, team));
-                }
-            }
+        List<PixelDto> result = new ArrayList<>(occupiedCells.size());
+        for (Coord cell : occupiedCells) {
+            result.add(new PixelDto(cell.x(), cell.y(), grid[cell.y()][cell.x()]));
         }
         return result;
     }

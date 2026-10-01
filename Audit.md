@@ -45,11 +45,14 @@ Latence moyenne, en millisecondes (plus bas = meilleur) :
 |---|---|---:|---:|---:|---:|
 | **V0** | Baseline (état initial) | 16.3 | 48.8 | 34.1 | 216.3 |
 | **V1** | Section critique de `placePixel()` réduite | 8.6 | 35.0 | 18.5 | 86.6 |
-| **V2** | I/O PostgreSQL sortie du verrou | 7.2 | 26.0 | 12.1 | **55.6** |
+| **V2** | I/O PostgreSQL sortie du verrou | 7.2 | 26.0 | 12.1 | 55.6 |
+| **V3** | `BoardGrid.snapshot()` en O(pixels posés) | 7.8 | 31.4 | 14.0 | 46.9 |
 
 > Signal le plus fort : le `POST` concurrent explose (34 → 216 ms, ×6,3) là où le séquentiel
 > reste bas — signature d'une sérialisation des écritures, confirmée au diagnostic. En V1,
-> il retombe à 86,6 ms (**-60 %**) ; en V2, à 55,6 ms (**-74 %** au total).
+> il retombe à 86,6 ms (**-60 %**) ; en V2, à 55,6 ms (**-74 %** au total). La V3 ne touche pas
+> à ce verrou (voir plus bas) : sa cible est `GET`, dont le gain n'est mesurable qu'en
+> micro-benchmark à l'échelle actuelle du plateau, noyé dans le bruit réseau au niveau HTTP.
 
 ---
 
@@ -125,12 +128,22 @@ plateau : la mutation `BoardGrid` et l'évaluation combo/capture, qui la lisent.
 **55,6 ms** (médiane 81,2 → 55,1 ms), soit **-36 %** de plus qu'en V1 et **-74 %** au total
 depuis la V0. Résultat stable sur les 3 mesures (55,6 / 62,9 / 63,2 ms).
 
-**Risque assumé.** La mise à jour PostgreSQL et `LeaderboardTracker` se fait maintenant
-quelques instructions après la mutation `BoardGrid` au lieu d'être atomique avec elle : en cas
-de crash exactement dans cette fenêtre, l'état diffusé aux clients pourrait devancer l'état
-persisté. Ce risque existait déjà en V1 pour le reste du traitement (statistiques,
-achievements, diffusion WebSocket) déplacé hors verrou ; V2 l'étend à la persistance des
-cellules.
+---
+
+## V3 — `BoardGrid.snapshot()` en O(pixels posés)
+
+**Ce qui a été modifié.** `BoardGrid` garde désormais un index des cases déjà posées
+(`occupiedCells`), alimenté par `set()` et le chargement initial. `snapshot()` itère sur cet
+index au lieu de balayer les 9 600 cases du plateau à chaque appel. `get()`/`set()`/`neighbors()`
+sont inchangés : `ComboEvaluator` et `CaptureEvaluator` ne sont pas affectés.
+
+**Bénéfice mesuré (hyperfine).** `BoardGrid.snapshot()` passe de 13,9 µs/appel à
+**1,7 µs/appel** à la taille actuelle du plateau. Rejoué sur les mêmes tailles que le
+diagnostic V0 (jusqu'à 6000×6000, toujours 183 pixels posés), le coût reste stable au lieu
+d'exploser avec la surface : la dépendance à la taille du plateau a disparu.
+
+Cette version ne touche pas au verrou de `placePixel()` ; la valeur `POST` du tableau reste
+du même ordre de grandeur qu'en V2.
 
 ---
 

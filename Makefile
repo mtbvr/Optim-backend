@@ -161,31 +161,33 @@ bench-hyperfine:
 	mkdir -p $(OUT_DIR)/hyperfine-src $(OUT_DIR)/hyperfine-classes
 	cat > $(OUT_DIR)/hyperfine-src/Snapshot.java <<-'EOF'
 	import java.util.ArrayList;
+	import java.util.HashSet;
 	import java.util.List;
 	import java.util.Random;
+	import java.util.Set;
 	public class Snapshot {
 	    static final int WIDTH = Integer.parseInt(System.getProperty("board.width", "120"));
 	    static final int HEIGHT = Integer.parseInt(System.getProperty("board.height", "80"));
 	    static final int PLACED_PIXELS = Integer.parseInt(System.getProperty("board.placed", "183"));
+	    record Coord(int x, int y) {}
 	    record PixelDto(int x, int y, int team) {}
 	    static int[][] grid;
+	    static Set<Coord> occupiedCells;
 	    static List<PixelDto> snapshot() {
-	        List<PixelDto> result = new ArrayList<>();
-	        for (int y = 0; y < grid.length; y++) {
-	            for (int x = 0; x < grid[y].length; x++) {
-	                int team = grid[y][x];
-	                if (team != 0) result.add(new PixelDto(x, y, team));
-	            }
+	        List<PixelDto> result = new ArrayList<>(occupiedCells.size());
+	        for (Coord cell : occupiedCells) {
+	            result.add(new PixelDto(cell.x(), cell.y(), grid[cell.y()][cell.x()]));
 	        }
 	        return result;
 	    }
 	    public static void main(String[] args) {
 	        grid = new int[HEIGHT][WIDTH];
+	        occupiedCells = new HashSet<>();
 	        Random random = new Random(42);
 	        int placed = 0;
 	        while (placed < PLACED_PIXELS) {
 	            int x = random.nextInt(WIDTH), y = random.nextInt(HEIGHT);
-	            if (grid[y][x] == 0) { grid[y][x] = random.nextBoolean() ? 1 : 2; placed++; }
+	            if (grid[y][x] == 0) { grid[y][x] = random.nextBoolean() ? 1 : 2; occupiedCells.add(new Coord(x, y)); placed++; }
 	        }
 	        long sink = 0;
 	        for (int i = 0; i < ITER; i++) sink += snapshot().size();
@@ -195,21 +197,21 @@ bench-hyperfine:
 	}
 	EOF
 	javac -d $(OUT_DIR)/hyperfine-classes $(OUT_DIR)/hyperfine-src/Snapshot.java
-	echo "== hyperfine : BoardGrid.snapshot(), scan complet + ArrayList non pre-dimensionnee =="
+	echo "== hyperfine : BoardGrid.snapshot(), index des cases occupees (V3) =="
 	hyperfine --warmup $(HF_WARMUP) --runs $(HF_RUNS) \
-		-n "Snapshot (scan complet + ArrayList non pre-dimensionnee)" \
+		-n "Snapshot (index des cases occupees)" \
 		"java -Dhf.iterations=$(HF_ITERATIONS) -cp $(OUT_DIR)/hyperfine-classes Snapshot" \
 		--export-markdown $(OUT_DIR)/hyperfine-snapshot.md
-	
+
 bench-hyperfine-scaling: bench-hyperfine
 	echo "== hyperfine : passage a l'echelle de BoardGrid.snapshot() (183 pixels poses fixes) =="
 	hyperfine --warmup 2 --runs 8 \
 		-n "120x80 (plateau reel)" "java -Dboard.width=120 -Dboard.height=80 -Dboard.placed=183 -Dhf.iterations=200000 -cp $(OUT_DIR)/hyperfine-classes Snapshot" \
-		-n "500x500" "java -Dboard.width=500 -Dboard.height=500 -Dboard.placed=183 -Dhf.iterations=5000 -cp $(OUT_DIR)/hyperfine-classes Snapshot" \
-		-n "2000x2000" "java -Dboard.width=2000 -Dboard.height=2000 -Dboard.placed=183 -Dhf.iterations=500 -cp $(OUT_DIR)/hyperfine-classes Snapshot" \
-		-n "6000x6000" "java -Dboard.width=6000 -Dboard.height=6000 -Dboard.placed=183 -Dhf.iterations=50 -cp $(OUT_DIR)/hyperfine-classes Snapshot" \
+		-n "500x500" "java -Dboard.width=500 -Dboard.height=500 -Dboard.placed=183 -Dhf.iterations=200000 -cp $(OUT_DIR)/hyperfine-classes Snapshot" \
+		-n "2000x2000" "java -Dboard.width=2000 -Dboard.height=2000 -Dboard.placed=183 -Dhf.iterations=200000 -cp $(OUT_DIR)/hyperfine-classes Snapshot" \
+		-n "6000x6000" "java -Dboard.width=6000 -Dboard.height=6000 -Dboard.placed=183 -Dhf.iterations=200000 -cp $(OUT_DIR)/hyperfine-classes Snapshot" \
 		--export-markdown $(OUT_DIR)/hyperfine-scaling.md
-	
+
 bench: bench-get-sequential bench-get-concurrent bench-post-sequential bench-post-concurrent bench-hyperfine bench-hyperfine-scaling
 	echo ""
 	echo "======================================================"
