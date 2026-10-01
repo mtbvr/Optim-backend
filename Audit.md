@@ -47,12 +47,15 @@ Latence moyenne, en millisecondes (plus bas = meilleur) :
 | **V1** | Section critique de `placePixel()` réduite | 8.6 | 35.0 | 18.5 | 86.6 |
 | **V2** | I/O PostgreSQL sortie du verrou | 7.2 | 26.0 | 12.1 | 55.6 |
 | **V3** | `BoardGrid.snapshot()` en O(pixels posés) | 7.8 | 31.4 | 14.0 | 46.9 |
+| **V4** | `persistCells` par lot (SQL) | 10.4 | 34.1 | 21.1 | 56.9 |
 
 > Signal le plus fort : le `POST` concurrent explose (34 → 216 ms, ×6,3) là où le séquentiel
 > reste bas — signature d'une sérialisation des écritures, confirmée au diagnostic. En V1,
 > il retombe à 86,6 ms (**-60 %**) ; en V2, à 55,6 ms (**-74 %** au total). La V3 ne touche pas
-> à ce verrou (voir plus bas) : sa cible est `GET`, dont le gain n'est mesurable qu'en
-> micro-benchmark à l'échelle actuelle du plateau, noyé dans le bruit réseau au niveau HTTP.
+> à ce verrou : sa cible est `GET`, dont le gain n'est mesurable qu'en micro-benchmark. La V4
+> ne touche ni le verrou ni `BoardGrid` : son gain se mesure en requêtes SQL, pas en latence
+> HTTP sur un placement simple (voir plus bas) — les valeurs V3/V4 du tableau restent dans le
+> même ordre de grandeur, bruit de mesure inclus.
 
 ---
 
@@ -144,6 +147,25 @@ d'exploser avec la surface : la dépendance à la taille du plateau a disparu.
 
 Cette version ne touche pas au verrou de `placePixel()` ; la valeur `POST` du tableau reste
 du même ordre de grandeur qu'en V2.
+
+---
+
+## V4 — persistance par lot dans `persistCells`
+
+**Ce qui a été modifié.** `persistCell(...)` (une lecture + une écriture par cellule) devient
+`persistCells(...)` : une lecture groupée (`findAllById`) puis une écriture groupée
+(`saveAll`) pour tout un placement. `Pixel` implémente `Persistable<PixelId>` : sans ça,
+Spring Data JPA refaisait une vérification d'existence par cellule avant chaque écriture
+(identifiant assigné, non auto-généré). Le batching JDBC est activé
+(`hibernate.jdbc.batch_size`).
+
+**Bénéfice mesuré (requêtes SQL, logs Hibernate).** Sur une bombe (9 cellules) : 27 requêtes
+vers `pixels` avant, **10** après. Un placement simple (le cas courant) n'était pas visé par
+le N+1 mais gagne aussi la vérification d'existence en moins (3 → 2 requêtes).
+
+Cette version ne touche ni le verrou ni `BoardGrid` : au niveau HTTP, aucun écart mesurable
+pour un placement simple — le gain ne se voit qu'en comptant les requêtes sur les placements
+multi-cellules (bombe, capture).
 
 ---
 

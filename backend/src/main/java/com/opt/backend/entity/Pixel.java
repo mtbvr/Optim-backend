@@ -5,11 +5,14 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.domain.Persistable;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -19,7 +22,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Pixel {
+public class Pixel implements Persistable<PixelId> {
 
     @EmbeddedId
     private PixelId id;
@@ -38,10 +41,23 @@ public class Pixel {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @Transient
+    private boolean isNew = true;
+
     public Pixel(PixelId id, String color, Team team, UUID updatedBy) {
         this.id = id;
         this.color = color;
         this.team = team;
         this.updatedBy = updatedBy;
+    }
+
+    @PostLoad
+    void markNotNew() {
+        isNew = false;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
     }
 }

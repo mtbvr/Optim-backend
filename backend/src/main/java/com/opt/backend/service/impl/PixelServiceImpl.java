@@ -43,9 +43,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -143,9 +143,7 @@ public class PixelServiceImpl implements PixelService {
         List<Coord> targetCells = resolveTargetCells(request.x(), request.y(), isBomb);
         PlacementResult result = applyPlacement(userId, team, color, targetCells, isBomb, isFortress,
                 request.x(), request.y());
-        for (CellChange change : result.changes()) {
-            persistCell(change, color, userId);
-        }
+        persistCells(result.changes(), color, userId);
 
         boolean bonusApplied = bonusZoneTracker.isActiveAt(request.x(), request.y());
         int pointsAwarded = result.basePoints() + result.comboPoints() + result.capturePoints();
@@ -230,18 +228,36 @@ public class PixelServiceImpl implements PixelService {
         return new CellChange(cell, previousTeam, newTeam);
     }
 
-    private void persistCell(CellChange change, String color, UUID userId) {
-        PixelId id = new PixelId(change.cell().x(), change.cell().y());
-        Optional<Pixel> existing = pixelRepository.findById(id);
-        UUID previousOwner = existing.map(Pixel::getUpdatedBy).orElse(null);
+    private void persistCells(List<CellChange> changes, String color, UUID userId) {
+        if (changes.isEmpty()) {
+            return;
+        }
+        List<PixelId> ids = new ArrayList<>(changes.size());
+        for (CellChange change : changes) {
+            ids.add(new PixelId(change.cell().x(), change.cell().y()));
+        }
 
-        Pixel pixel = existing.orElseGet(() -> new Pixel(id, color, change.newTeam(), userId));
-        pixel.setColor(color);
-        pixel.setTeam(change.newTeam());
-        pixel.setUpdatedBy(userId);
-        pixelRepository.save(pixel);
+        Map<PixelId, Pixel> existingById = new HashMap<>();
+        for (Pixel pixel : pixelRepository.findAllById(ids)) {
+            existingById.put(pixel.getId(), pixel);
+        }
 
-        leaderboardTracker.recordChange(previousOwner, change.previousTeam(), userId, change.newTeam());
+        List<Pixel> toSave = new ArrayList<>(changes.size());
+        for (int i = 0; i < changes.size(); i++) {
+            CellChange change = changes.get(i);
+            PixelId id = ids.get(i);
+            Pixel existing = existingById.get(id);
+            UUID previousOwner = existing != null ? existing.getUpdatedBy() : null;
+
+            Pixel pixel = existing != null ? existing : new Pixel(id, color, change.newTeam(), userId);
+            pixel.setColor(color);
+            pixel.setTeam(change.newTeam());
+            pixel.setUpdatedBy(userId);
+            toSave.add(pixel);
+
+            leaderboardTracker.recordChange(previousOwner, change.previousTeam(), userId, change.newTeam());
+        }
+        pixelRepository.saveAll(toSave);
     }
 
     private List<Coord> resolveTargetCells(int x, int y, boolean isBomb) {
